@@ -4,13 +4,12 @@ const { Pool } = require("pg");
 const app = express();
 const port = 3000;
 
-// Configuração do pool de conexão com SSL
+// Configuração do pool de conexão com a string de conexão fornecida
 const pool = new Pool({
-  host: "localhost",
-  port: 5432,
-  user: "postgres",
-  password: "root",
-  database: "clinica",
+  connectionString: "postgresql://clinica_0o65_user:OKBy1oVhaX5kWiLmetvBoWIkFaIxByKq@dpg-cs6kbb2j1k6c73a5oac0-a.oregon-postgres.render.com/clinica_0o65",
+  ssl: {
+    rejectUnauthorized: false // Configuração de SSL, caso necessário
+  }
 });
 
 // Middleware para interpretar o JSON
