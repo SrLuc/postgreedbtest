@@ -4,13 +4,13 @@ const { Pool } = require("pg");
 const app = express();
 const port = 3000;
 
-// Configuração do pool de conexão com o PostgreSQL
+// Configuração do pool de conexão com SSL
 const pool = new Pool({
-  user: "postgres", // Substitua pelo seu usuário do PostgreSQL
   host: "localhost",
-  database: "clinica",
-  password: "root", // Substitua pela sua senha do PostgreSQL
   port: 5432,
+  user: "postgres",
+  password: "root",
+  database: "clinica",
 });
 
 // Middleware para interpretar o JSON
@@ -30,11 +30,32 @@ app.get("/tutores", async (req, res) => {
 // Rota para consultar todos os pets
 app.get("/pets", async (req, res) => {
   try {
+    console.log("Consultando a tabela pets...");
     const result = await pool.query("SELECT * FROM pets");
     res.json(result.rows);
   } catch (err) {
-    console.error(err);
+    console.error("Erro ao consultar pets:", err);
     res.status(500).send("Erro ao consultar pets");
+  }
+});
+
+// Rota para cadastrar um novo pet
+app.post("/pets", async (req, res) => {
+  const { nome, especie, raca, idade, tutor_id } = req.body;
+
+  if (!nome || !tutor_id) {
+    return res.status(400).send("Nome e tutor_id são obrigatórios");
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO pets (nome, especie, raca, idade, tutor_id) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [nome, especie, raca, idade, tutor_id]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Erro ao cadastrar pet");
   }
 });
 
@@ -95,6 +116,6 @@ pool
     });
   })
   .catch((err) => {
-    console.error("Erro ao conectar ao banco de dados", err);
+    console.error("Erro ao conectar ao banco de dados", err.stack);
     process.exit(1); // Encerra o processo caso a conexão falhe
   });
